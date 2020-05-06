@@ -1,0 +1,80 @@
+<html>
+
+<head>
+    <meta charset="utf8">
+    <title>身份证校验</title>
+    <style>
+        p {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    身份证号码:<input id="idCardText" value="52222719790813281x" /><br />
+    <button onclick="test();">校验</button><br />
+    <p id="result1">---<p>
+            <p id="result2">---<p>
+</body>
+
+<script>
+    // 测试
+    function test() {
+        var idCardText = document.getElementById('idCardText').value;
+        var r1 = isIdCard(idCardText);
+        var r2 = isIdCardStrict(idCardText);
+        document.getElementById('result1').innerHTML = '粗略的验证：' + r1;
+        document.getElementById('result2').innerHTML = '校验码验证：' + r2;
+    }
+
+    /*
+     * 校验18位身份证，粗略的校验
+     *
+     * @param idCard
+     *            身份证号
+     * @return 验证成功返回true，验证失败返回false
+     */
+    function isIdCard(idCard) {
+        if (!idCard || idCard.length != 18) {
+            return false;
+        }
+        /*
+         * 11北京| 12天津| 13河北| 14山西| 15内蒙古|21辽宁| 22吉林| 23黑龙江|31上海| 32江苏| 33浙江|
+         * 34安徽| 35福建| 36江西| 37山东| 41河南| 42湖北| 43湖南| 44广东| 45广西| 46海南| 50重庆|
+         * 51四川| 52贵州| 53云南| 54西藏| 61陕西| 62甘肃| 63青海| 64宁夏| 65新疆|
+         * (未加入限制：71台湾|81香港|82澳门|91国外)
+         */
+        // 粗略的校验
+        var regex =
+            /^(11|12|13|14|15|21|22|23|31|32|33|34|35|36|37|41|42|43|44|45|46|50|51|52|53|54|61|62|63|64|65)(\d{4})(19|20|21)(\d{2})(1[0-2]|0[1-9])(0[1-9]|[1-2][0-9]|3[0-1])(\d{3})(\d{1}|X|x)$/;
+        return regex.test(idCard);
+    }
+
+    /*
+     * 校验18位身份证，比较严格的校验，对身份证号进行校验码验证
+     * 
+     * @param idCard
+     *            身份证号
+     * @return 验证成功返回true，验证失败返回false
+     */
+    function isIdCardStrict(idCard) {
+        if (!isIdCard(idCard)) { // 先进行粗略校验
+            return false;
+        }
+        /* 粗略校验通过后，必定有18位字符，对身份证的最后一位校验码进行验证 */
+        var prefix = new Array(7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2); // 加权因子数组
+        var suffix = new Array("1", "0", "X", "9", "8", "7", "6", "5", "4", "3", "2"); // 校验码数组，其中X为10
+        var wiSum = 0; // 用来保存前17位各自乖以加权因子后的总和
+        for (var i = 0; i < 17; i++) {
+            console.log(idCard[i]);
+            wiSum += parseInt(idCard[i]) * prefix[i];
+        }
+        var wiMod = wiSum % 11; // 计算出校验码所在数组的位置
+        var code = suffix[wiMod]; // 从数组中得到校验码，如果wiMod等于2，则说明校验码是10，身份证号码最后一位应该是X
+        var idCardLast = idCard[17].toUpperCase(); // 获取身份证号码的最后一位，最后一位是校验码
+        // 用计算出来的校验码与最后一位身份证号码比较，如果相等，说明验证通过，否则是无效的身份证号码
+        return (code == idCardLast);
+    }
+</script>
+
+</html>
